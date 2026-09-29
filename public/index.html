@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>树洞信箱 · 写一封信</title>
+<meta name="description" content="匿名投递心事，树洞会认真读每一封信。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='48' font-size='48'>🌳</text></svg>" />
+</head>
+<body>
+<div class="wrap">
+
+  <section class="card tint">
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <svg class="tree-hero" viewBox="0 0 260 210" role="img" aria-label="一棵有树洞的大树" style="flex:none">
+        <defs>
+          <linearGradient id="trunkG" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0"    stop-color="#9a6a46"/>
+            <stop offset="0.32" stop-color="#c58f60"/>
+            <stop offset="0.62" stop-color="#ac7a51"/>
+            <stop offset="1"    stop-color="#85583a"/>
+          </linearGradient>
+          <radialGradient id="hollowG" cx="0.5" cy="0.78" r="0.75">
+            <stop offset="0"    stop-color="#ffe3ad"/>
+            <stop offset="0.45" stop-color="#c08a52"/>
+            <stop offset="1"    stop-color="#402b1d"/>
+          </radialGradient>
+          <linearGradient id="leafBack" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#69b894"/><stop offset="1" stop-color="#3f8f70"/>
+          </linearGradient>
+          <linearGradient id="leafFront" x1="0.1" y1="0" x2="0.7" y2="1">
+            <stop offset="0" stop-color="#b6e8cd"/><stop offset="1" stop-color="#79c9a5"/>
+          </linearGradient>
+          <radialGradient id="flyG" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#fff3c4" stop-opacity="0.95"/>
+            <stop offset="1" stop-color="#ffe08a" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- 地面投影 -->
+        <ellipse cx="130" cy="196" rx="76" ry="9" fill="#e3cdb2" opacity="0.75"/>
+        <!-- 草丛 -->
+        <path d="M54 190 q4 -14 10 -18 q-2 12 2 18 z" fill="#8ad3ae"/>
+        <path d="M196 191 q-5 -13 -11 -16 q3 11 -1 16 z" fill="#8ad3ae"/>
+        <path d="M210 193 q6 -9 12 -11 q-5 7 -6 11 z" fill="#a5dcc1"/>
+
+        <!-- 树干 -->
+        <path d="M98 96 C92 126 88 154 86 178 C86 186 96 190 130 190 C164 190 174 186 174 178 C172 154 168 126 162 96 Z" fill="url(#trunkG)"/>
+        <!-- 树皮纹理 -->
+        <path d="M112 104 C108 132 106 160 105 182" stroke="#7d5236" stroke-width="3" fill="none" opacity="0.45" stroke-linecap="round"/>
+        <path d="M149 104 C153 132 155 160 156 182" stroke="#7d5236" stroke-width="3" fill="none" opacity="0.45" stroke-linecap="round"/>
+        <path d="M130 100 C130 130 130 162 130 187" stroke="#7d5236" stroke-width="2" fill="none" opacity="0.22" stroke-linecap="round"/>
+        <!-- 根部 -->
+        <path d="M86 178 q-14 4 -18 12 q16 -2 24 -6 z" fill="#a37049"/>
+        <path d="M174 178 q14 4 18 12 q-16 -2 -24 -6 z" fill="#8f5f3c"/>
+
+        <!-- 树洞 -->
+        <ellipse cx="130" cy="133" rx="34" ry="31" fill="url(#hollowG)"/>
+        <ellipse cx="130" cy="133" rx="34" ry="31" fill="none" stroke="#7a5334" stroke-width="4"/>
+        <ellipse cx="130" cy="133" rx="27" ry="24" fill="none" stroke="#2f1f14" stroke-width="2" opacity="0.35"/>
+        <!-- 树洞里的小精灵 -->
+        <g>
+          <circle cx="117" cy="128" r="5" fill="#fffdf6"/>
+          <circle cx="143" cy="128" r="5" fill="#fffdf6"/>
+          <circle cx="118" cy="129" r="2.4" fill="#4a3324"/>
+          <circle cx="144" cy="129" r="2.4" fill="#4a3324"/>
+          <circle cx="119.4" cy="127.4" r="1" fill="#fff"/>
+          <circle cx="145.4" cy="127.4" r="1" fill="#fff"/>
+          <path d="M120 140 q10 8 20 0" stroke="#ffd6c4" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+          <circle cx="108" cy="137" r="3.4" fill="#ffb0c4" opacity="0.55"/>
+          <circle cx="152" cy="137" r="3.4" fill="#ffb0c4" opacity="0.55"/>
+        </g>
+
+        <!-- 树冠 -->
+        <g class="tree-canopy">
+          <g fill="url(#leafBack)">
+            <circle cx="130" cy="74" r="49"/>
+            <circle cx="88"  cy="90" r="34"/>
+            <circle cx="172" cy="90" r="34"/>
+            <circle cx="107" cy="50" r="31"/>
+            <circle cx="153" cy="52" r="33"/>
+          </g>
+          <g fill="url(#leafFront)" transform="translate(0 -6)">
+            <circle cx="130" cy="72" r="44"/>
+            <circle cx="92"  cy="86" r="29"/>
+            <circle cx="168" cy="86" r="29"/>
+            <circle cx="109" cy="52" r="27"/>
+            <circle cx="151" cy="54" r="28"/>
+          </g>
+          <ellipse cx="110" cy="46" rx="24" ry="14" fill="#ffffff" opacity="0.2"/>
+          <ellipse cx="158" cy="62" rx="12" ry="7" fill="#ffffff" opacity="0.14"/>
+          <!-- 叶子点缀 -->
+          <g fill="#4fa585" opacity="0.5">
+            <path d="M100 62 q10 -8 18 0 q-9 7 -18 0z"/>
+            <path d="M150 76 q11 -8 19 0 q-10 7 -19 0z"/>
+            <path d="M126 40 q9 -7 16 0 q-8 6 -16 0z"/>
+          </g>
+          <!-- 小花 -->
+          <circle cx="176" cy="70" r="4" fill="#ffb0c4"/>
+          <circle cx="176" cy="70" r="1.6" fill="#fff3c4"/>
+          <circle cx="86" cy="108" r="3.6" fill="#ffd98a"/>
+          <circle cx="86" cy="108" r="1.4" fill="#fff"/>
+        </g>
+
+        <!-- 飞进树洞的信 -->
+        <g class="envelope-fly">
+          <g transform="translate(178 92) rotate(-14)">
+            <rect x="0" y="0" width="36" height="25" rx="5" fill="#fffdf7" stroke="#e2d1bd" stroke-width="2"/>
+            <path d="M1 5 L18 17 L35 5" fill="none" stroke="#e2d1bd" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="18" cy="19" r="3.4" fill="#ffb0c4"/>
+          </g>
+        </g>
+
+        <!-- 萤火虫 -->
+        <g>
+          <circle class="firefly" cx="66"  cy="120" r="7" fill="url(#flyG)"/>
+          <circle class="firefly" cx="200" cy="140" r="6" fill="url(#flyG)" style="animation-delay:-1.3s"/>
+          <circle class="firefly" cx="196" cy="86"  r="5" fill="url(#flyG)" style="animation-delay:-2.6s"/>
+        </g>
+
+        <!-- 小蘑菇 -->
+        <g>
+          <ellipse cx="70" cy="183" rx="4" ry="8" fill="#fff1dc"/>
+          <path d="M61 181 a9 8 0 0 1 18 0 z" fill="#ff8fa3"/>
+          <circle cx="66" cy="177" r="1.7" fill="#fff" opacity="0.85"/>
+          <circle cx="73" cy="178" r="1.2" fill="#fff" opacity="0.85"/>
+        </g>
+        <g>
+          <ellipse cx="192" cy="187" rx="3.2" ry="6.4" fill="#fff1dc"/>
+          <path d="M185 185 a7 6 0 0 1 14 0 z" fill="#ffc46b"/>
+          <circle cx="189" cy="182" r="1.3" fill="#fff" opacity="0.85"/>
+        </g>
+      </svg>
+      <div style="flex:1;min-width:220px">
+        <h1 class="title">嘿，想把什么交给树洞？</h1>
+        <p class="sub" style="margin:0">
+          完全匿名，不需要注册，不会记录你是谁。<br />
+          写完之后树洞主人会亲自回信 —— <b>只有你能看到那封回信</b>。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 写信表单 -->
+  <section class="card" id="formCard">
+    <label class="field">
+      <span>📝 写下你的心事 <span class="counter"><b id="cnt">0</b>/2000</span></span>
+      <textarea id="content" maxlength="2000" placeholder="今天有点累……&#10;&#10;可以写给某个人、某件事，也可以只写给自己。树洞不会打断你。"></textarea>
+    </label>
+
+    <label class="field">
+      <span>🎈 现在的心情</span>
+      <div class="moods" id="moods"></div>
+    </label>
+
+    <label class="field">
+      <span>🐣 署名（可留空）</span>
+      <input type="text" id="nickname" maxlength="24" placeholder="不想留名字就空着吧" />
+    </label>
+
+    <div class="switch" id="pubSwitch">
+      <div class="knob"></div>
+      <div class="txt">
+        <b>🌳 愿意把这封信放到广场吗？</b>
+        <small>关：只有你和树洞主人能看到　|　开：主人审核通过后大家都能看到并回复</small>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn primary" id="submit">📮 投进树洞</button>
+      <span class="hint" style="margin:0">投出去就收不回来啦，想清楚再按哦</span>
+    </div>
+  </section>
+
+  <!-- 投递成功 -->
+  <section class="card" id="doneCard" style="display:none">
+    <h1 class="title">🌿 收到了，谢谢你愿意说</h1>
+    <p class="sub">树洞主人会尽快回信。回信只有你能看到 —— 请收好下面这串<b>取件码</b>，换设备时输入它就能找回你的信。</p>
+
+    <div class="codebox">
+      <div style="font-size:13px;color:#a3762a">你的取件码</div>
+      <div class="code" id="code">—</div>
+      <button class="btn sm ghost" id="copyBtn">📋 复制取件码</button>
+    </div>
+
+    <div class="btn-row">
+      <a class="btn green" href="/mine.html">📬 去我的信箱看回信</a>
+      <button class="btn ghost" id="againBtn">✍️ 再写一封</button>
+    </div>
+  </section>
+
+</div>
+
+<script src="/assets/common.js"></script>
+<script>
+(function () {
+  const MOODS = ['🌱', '☁️', '🌧️', '🌸', '🌙', '🍀', '🐾', '💛', '🫧', '🔥'];
+  let mood = '🌱';
+  let wantPublic = false;
+
+  renderTop('home');
+  foot();
+
+  const moodsBox = document.getElementById('moods');
+  MOODS.forEach((m, i) => {
+    const b = el('div', 'mood' + (i === 0 ? ' on' : ''), m);
+    b.onclick = () => {
+      mood = m;
+      moodsBox.querySelectorAll('.mood').forEach((x) => x.classList.remove('on'));
+      b.classList.add('on');
+    };
+    moodsBox.appendChild(b);
+  });
+
+  const ta = document.getElementById('content');
+  const cnt = document.getElementById('cnt');
+  ta.addEventListener('input', () => { cnt.textContent = ta.value.length; });
+
+  const sw = document.getElementById('pubSwitch');
+  sw.onclick = () => {
+    wantPublic = !wantPublic;
+    sw.classList.toggle('on', wantPublic);
+  };
+
+  const btn = document.getElementById('submit');
+  btn.onclick = async () => {
+    const content = ta.value.trim();
+    if (!content) return toast('先写点什么再投吧～');
+    btn.disabled = true;
+    btn.textContent = '正在投递…';
+    try {
+      const r = await api('/api/letters', {
+        method: 'POST',
+        body: { content, mood, nickname: document.getElementById('nickname').value, wantPublic },
+      });
+      Store.addKey(r.authorKey);
+      Store.addCode(r.pickupCode);
+      document.getElementById('code').textContent = r.pickupCode;
+      document.getElementById('formCard').style.display = 'none';
+      const done = document.getElementById('doneCard');
+      done.style.display = '';
+      done.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📮 投进树洞';
+    }
+  };
+
+  document.getElementById('copyBtn').onclick = async () => {
+    const code = document.getElementById('code').textContent;
+    try {
+      await navigator.clipboard.writeText(code);
+      toast('取件码已复制：' + code);
+    } catch {
+      toast('复制失败，请手动记下：' + code);
+    }
+  };
+
+  document.getElementById('againBtn').onclick = () => location.reload();
+})();
+</script>
+</body>
+</html>

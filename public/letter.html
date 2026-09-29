@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>一封信 · 树洞信箱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='48' font-size='48'>💌</text></svg>" />
+</head>
+<body>
+<div class="wrap">
+  <div id="main"></div>
+</div>
+
+<script src="/assets/common.js"></script>
+<script>
+(function () {
+  renderTop('square');
+
+  const id = new URLSearchParams(location.search).get('id') || '';
+  const main = document.getElementById('main');
+
+  async function load() {
+    let data;
+    try {
+      data = await api('/api/letters/' + encodeURIComponent(id));
+    } catch (e) {
+      main.innerHTML = '';
+      const c = el('div', 'card empty');
+      c.appendChild(el('span', 'emo', '🍂'));
+      c.appendChild(el('div', null, e.message));
+      const a = el('a', 'btn primary', '返回广场');
+      a.href = '/square.html';
+      a.style.marginTop = '16px';
+      a.style.display = 'inline-block';
+      c.appendChild(a);
+      main.appendChild(c);
+      foot();
+      return;
+    }
+
+    const l = data.letter;
+    main.innerHTML = '';
+
+    const back = el('div');
+    const b = el('a', 'btn ghost sm', '← 返回广场');
+    b.href = '/square.html';
+    b.style.display = 'inline-block';
+    b.style.margin = '18px 0 14px';
+    back.appendChild(b);
+    main.appendChild(back);
+
+    // 信件
+    const card = el('section', 'card');
+    const head = el('div', 'head');
+    head.appendChild(el('div', 'mood-badge', l.mood));
+    const who = el('div');
+    who.appendChild(el('div', 'who', l.nickname ? l.nickname : '匿名的小家伙'));
+    who.appendChild(el('div', 'time', timeAgo(l.createdAt)));
+    head.appendChild(who);
+    card.appendChild(head);
+    card.appendChild(el('div', 'body', l.content));
+    main.appendChild(card);
+
+    // 回复区
+    const rc = el('section', 'card');
+    rc.appendChild(el('h1', 'title', '💬 大家的回复'));
+    rc.appendChild(el('p', 'sub', '这里说的话所有人都能看到，请温柔一点'));
+
+    const box = el('div', 'replies');
+    if (!data.replies.length) {
+      box.appendChild(el('div', 'hint', '还没有人回复，来做第一个吧～'));
+    }
+    data.replies.forEach((r) => {
+      const row = el('div', 'reply');
+      row.appendChild(el('div', 'rp-badge' + (r.isOwner ? ' owner' : ''), r.isOwner ? '🌳' : '🐣'));
+      const right = el('div');
+      const nm = el('div');
+      nm.appendChild(el('span', 'rp-name', r.nickname || (r.isOwner ? '树洞主人' : '匿名的小家伙')));
+      nm.appendChild(el('span', 'rp-time', timeAgo(r.createdAt)));
+      right.appendChild(nm);
+      right.appendChild(el('div', 'rp-body', r.content));
+      row.appendChild(right);
+      box.appendChild(row);
+    });
+    rc.appendChild(box);
+
+    const f = el('div');
+    f.style.marginTop = '16px';
+    const ta = el('textarea');
+    ta.maxLength = 1000;
+    ta.style.minHeight = '100px';
+    ta.placeholder = '留一句温暖的话……';
+    f.appendChild(ta);
+    const nick = el('input');
+    nick.type = 'text';
+    nick.maxLength = 24;
+    nick.placeholder = '署名（可留空）';
+    nick.style.marginTop = '10px';
+    f.appendChild(nick);
+    const row = el('div', 'btn-row');
+    const btn = el('button', 'btn green', '💌 发送回复');
+    row.appendChild(btn);
+    f.appendChild(row);
+    rc.appendChild(f);
+    main.appendChild(rc);
+
+    btn.onclick = async () => {
+      const c = ta.value.trim();
+      if (!c) return toast('回复不能为空哦');
+      btn.disabled = true;
+      try {
+        await api('/api/letters/' + encodeURIComponent(id) + '/replies', {
+          method: 'POST',
+          body: { content: c, nickname: nick.value },
+        });
+        toast('发送成功，谢谢你 💛');
+        load();
+      } catch (e) {
+        toast(e.message);
+        btn.disabled = false;
+      }
+    };
+
+    foot();
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

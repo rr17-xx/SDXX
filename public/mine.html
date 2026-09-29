@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>我的信箱 · 树洞信箱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='48' font-size='48'>📬</text></svg>" />
+</head>
+<body>
+<div class="wrap">
+
+  <section class="card tint">
+    <h1 class="title">📬 我的信箱</h1>
+    <p class="sub" style="margin:0">
+      你在这台设备上写过的信会自动出现在这里。换设备了？输入当时保存的<b>取件码</b>也能找回来。
+    </p>
+  </section>
+
+  <section class="card">
+    <label class="field">
+      <span>🔑 输入取件码</span>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <input type="text" id="codeInput" maxlength="24" placeholder="例如 XD-7K3P9Q" style="flex:1;min-width:180px;text-transform:uppercase" />
+        <button class="btn green" id="codeBtn">查信</button>
+      </div>
+      <div class="hint">取件码不区分大小写</div>
+    </label>
+    <div id="savedCodes" style="display:none">
+      <div class="hint" style="margin-bottom:8px">💾 本机保存过的取件码</div>
+      <div id="codeChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+  </section>
+
+  <div id="list"></div>
+
+</div>
+
+<script src="/assets/common.js"></script>
+<script>
+(function () {
+  renderTop('mine');
+  foot();
+
+  const list = document.getElementById('list');
+  const state = new Map(); // id -> letter
+
+  async function loadKey(k) {
+    const r = await api('/api/letters/mine?key=' + encodeURIComponent(k));
+    r.letters.forEach((l) => state.set(l.id, l));
+  }
+  async function loadCode(c) {
+    const r = await api('/api/letters/mine?code=' + encodeURIComponent(c.toUpperCase()));
+    r.letters.forEach((l) => state.set(l.id, l));
+  }
+
+  function render() {
+    const items = [...state.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    list.innerHTML = '';
+
+    if (!items.length) {
+      const e = el('div', 'card empty');
+      e.appendChild(el('span', 'emo', '🌰'));
+      e.appendChild(el('div', null, '这里还是空的'));
+      e.appendChild(el('div', null, '去写一封信，或者输入取件码找回它'));
+      const a = el('a', 'btn primary', '✍️ 写一封信');
+      a.href = '/index.html';
+      a.style.marginTop = '16px';
+      a.style.display = 'inline-block';
+      e.appendChild(a);
+      list.appendChild(e);
+      return;
+    }
+
+    items.forEach((l) => list.appendChild(card(l)));
+  }
+
+  function card(l) {
+    const c = el('div', 'letter');
+
+    const head = el('div', 'head');
+    head.appendChild(el('div', 'mood-badge', l.mood));
+    const who = el('div');
+    who.appendChild(el('div', 'who', l.nickname ? l.nickname : '匿名的小家伙'));
+    who.appendChild(el('div', 'time', timeAgo(l.createdAt) + ' · 取件码 ' + l.pickupCode));
+    head.appendChild(who);
+    head.appendChild(statusTag(l));
+    c.appendChild(head);
+
+    c.appendChild(el('div', 'body', l.content));
+
+    // 站主回信
+    const box = el('div', 'owner-reply');
+    box.appendChild(el('div', 'h', '🌳 树洞主人的回信 · 只有你看得到'));
+    box.appendChild(
+      el('div', 'c', l.ownerReply || '还没有回信哦，树洞主人正在认真读你的信……')
+    );
+    if (!l.ownerReply) box.style.opacity = '.75';
+    c.appendChild(box);
+
+    // 操作
+    const acts = el('div', 'btn-row');
+    if (l.wantPublic) {
+      const b = el('button', 'btn ghost sm', '🔒 取消公开');
+      b.onclick = () => setVis(l, false);
+      acts.appendChild(b);
+    } else {
+      const b = el('button', 'btn green sm', '🌳 申请公开到广场');
+      b.onclick = () => setVis(l, true);
+      acts.appendChild(b);
+    }
+    c.appendChild(acts);
+    return c;
+  }
+
+  function statusTag(l) {
+    const map = {
+      private: ['private', '🔒 私密'],
+      pending: ['pending', '⏳ 待主人审核'],
+      approved: ['ok', '🌳 已在广场公开'],
+      rejected: ['rejected', '🙈 未通过公开'],
+    };
+    const [cls, txt] = map[l.status] || map.private;
+    return el('span', 'tag ' + cls, txt);
+  }
+
+  async function setVis(l, want) {
+    try {
+      await api('/api/letters/mine/visibility', {
+        method: 'POST',
+        body: { code: l.pickupCode, wantPublic: want },
+      });
+      l.wantPublic = want;
+      l.status = want ? 'pending' : 'private';
+      render();
+      toast(want ? '已提交，等树洞主人审核~' : '已经收回广场啦');
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  function renderChips() {
+    const codes = Store.codes();
+    const box = document.getElementById('savedCodes');
+    const chips = document.getElementById('codeChips');
+    chips.innerHTML = '';
+    box.style.display = codes.length ? '' : 'none';
+    codes.forEach((c) => {
+      const b = el('button', 'btn sm ghost', c);
+      b.onclick = async () => {
+        try { await loadCode(c); render(); } catch (e) { toast(e.message); }
+      };
+      chips.appendChild(b);
+    });
+  }
+
+  document.getElementById('codeBtn').onclick = async () => {
+    const v = document.getElementById('codeInput').value.trim();
+    if (!v) return toast('请输入取件码');
+    try {
+      await loadCode(v);
+      Store.addCode(v.toUpperCase());
+      render();
+      renderChips();
+      toast('找到啦');
+    } catch (e) {
+      toast(e.message);
+    }
+  };
+  document.getElementById('codeInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('codeBtn').click();
+  });
+
+  (async () => {
+    const keys = Store.keys();
+    for (const k of keys) {
+      try { await loadKey(k); } catch (e) { /* 忽略单key失败 */ }
+    }
+    render();
+    renderChips();
+  })();
+})();
+</script>
+</body>
+</html>

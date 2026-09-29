@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: treehole-mailbox
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /index.html
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_PASSWORD
+        sync: false          # 在 Render 控制台里手动填写
+      - key: ADMIN_PATH
+        sync: false          # 建议改成一串只有你知道的字符
+      - key: DATABASE_URL
+        sync: false          # 强烈建议填 Neon/Supabase 免费 Postgres

@@ -1,0 +1,20 @@
+{
+  "name": "treehole-mailbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "树洞信箱 - 匿名写信 / 站主私密回复 / 公开广场",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.5.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.1",
+    "pg": "^8.13.1"
+  }
+}

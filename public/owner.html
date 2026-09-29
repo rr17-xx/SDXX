@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>树洞主人入口</title>
+<meta name="description" content="树洞主人的专属入口" />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='48' font-size='48'>🌳</text></svg>" />
+</head>
+<body>
+<div class="wrap">
+
+  <section class="card login-box" id="box"></section>
+
+</div>
+
+<script src="/assets/common.js"></script>
+<script>
+  renderTop();
+  foot(true);
+
+  const box = document.getElementById('box');
+
+  function render() {
+    box.innerHTML = `
+      <h1 class="title">🌳 树洞主人入口</h1>
+      <p class="sub">进去就能看到所有人写的信，包括没有公开的那些</p>
+      <label class="field">
+        <span>你的树洞口令</span>
+        <input id="p" type="password" placeholder="你自己设的那串字符" autocomplete="off" />
+      </label>
+      <button class="btn primary" id="go" style="width:100%">进入我的树洞</button>
+      <p class="hint" id="err" hidden></p>
+      <div style="text-align:center;margin-top:18px">
+        <a href="/square.html" style="font-size:13px;color:var(--ink-soft)">我不是主人，去广场逛逛 →</a>
+      </div>
+      <p class="hint" style="margin-top:20px;font-size:12px">
+        口令是部署时设的 <code>ADMIN_PATH</code>，不在页面上显示、也不存在浏览器里。<br>
+        忘了的话，只有能改服务器环境变量的人能找回来。
+      </p>`;
+
+    const input = box.querySelector('#p');
+    const err = box.querySelector('#err');
+    const btn = box.querySelector('#go');
+
+    function submit() {
+      const v = input.value.trim();
+      if (!v) { showErr('先输入口令呀'); return; }
+      btn.disabled = true;
+      btn.textContent = '正在找那棵树…';
+      fetch('/api/admin/check-path', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: v }),
+        credentials: 'same-origin',
+      })
+        .then(async (r) => {
+          const d = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(d.error || '进不去');
+          // 记住路径，之后导航栏会自动出现「主人空间」
+          try { localStorage.setItem('treehole.adminPath', d.path); } catch {}
+          location.href = d.path;
+        })
+        .catch((e) => {
+          showErr(e.message || '进不去');
+          btn.disabled = false;
+          btn.textContent = '进入我的树洞';
+        });
+    }
+
+    function showErr(m) {
+      err.hidden = false;
+      err.textContent = '🌰 ' + m;
+      err.style.color = '#d9697f';
+    }
+
+    btn.onclick = submit;
+    input.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+    input.focus();
+  }
+
+  render();
+</script>
+</body>
+</html>

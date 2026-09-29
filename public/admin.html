@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>树洞主人 · 后台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='48' font-size='48'>🌳</text></svg>" />
+<meta name="robots" content="noindex" />
+</head>
+<body>
+<div class="wrap wide" id="root">
+  <div class="top">
+    <a class="brand" href="/index.html">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="adTrunk" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#9a6a46"/><stop offset="0.35" stop-color="#c58f60"/><stop offset="1" stop-color="#85583a"/>
+          </linearGradient>
+          <radialGradient id="adHollow" cx="0.5" cy="0.78" r="0.75">
+            <stop offset="0" stop-color="#ffe3ad"/><stop offset="0.45" stop-color="#c08a52"/><stop offset="1" stop-color="#402b1d"/>
+          </radialGradient>
+          <linearGradient id="adLeaf" x1="0.1" y1="0" x2="0.7" y2="1">
+            <stop offset="0" stop-color="#b6e8cd"/><stop offset="1" stop-color="#6ec19c"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="32" cy="58" rx="19" ry="4" fill="#e3cdb2"/>
+        <path d="M27 30 C25 40 24 50 24 55 C24 57.2 26.4 58.4 32 58.4 C37.6 58.4 40 57.2 40 55 C40 50 39 40 37 30 Z" fill="url(#adTrunk)"/>
+        <g class="tree-canopy">
+          <circle cx="32" cy="19" r="13" fill="#4fa585"/>
+          <circle cx="20" cy="27" r="9.5" fill="#4fa585"/>
+          <circle cx="44" cy="27" r="9.5" fill="#4fa585"/>
+          <circle cx="32" cy="17" r="11" fill="url(#adLeaf)"/>
+          <circle cx="22" cy="25" r="7.5" fill="url(#adLeaf)"/>
+          <circle cx="42" cy="25" r="7.5" fill="url(#adLeaf)"/>
+          <ellipse cx="27" cy="12" rx="6" ry="3.2" fill="#fff" opacity="0.25"/>
+        </g>
+        <ellipse cx="32" cy="43" rx="9" ry="8" fill="url(#adHollow)"/>
+        <ellipse cx="32" cy="43" rx="9" ry="8" fill="none" stroke="#7a5334" stroke-width="2"/>
+        <circle cx="29" cy="41" r="1.6" fill="#fffdf6"/><circle cx="35" cy="41" r="1.6" fill="#fffdf6"/>
+        <path d="M29 46.5 q3 2.4 6 0" stroke="#ffd6c4" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span><b>树洞主人后台</b><small>认真读每一封信</small></span>
+    </a>
+    <nav class="links">
+      <a href="/square.html">🌳 看广场</a>
+      <a href="#" id="acctBtn" style="display:none">⚙️ 账号设置</a>
+      <a href="#" id="logout" style="display:none">🚪 退出</a>
+    </nav>
+  </div>
+  <div id="app"></div>
+</div>
+
+<script src="/assets/common.js"></script>
+<script>
+(function () {
+  const app = document.getElementById('app');
+  const acctBtn = document.getElementById('acctBtn');
+  const logoutBtn = document.getElementById('logout');
+  let filter = 'all';
+  let letters = [];
+  let overview = { total: 0, pending: 0, approved: 0, private: 0, replied: 0 };
+  let showAccount = false;
+
+  // 记住后台地址，之后在其他页面的导航栏会出现「主人空间」入口
+  try { localStorage.setItem('treehole.adminPath', location.pathname); } catch {}
+
+  logoutBtn.onclick = async (e) => {
+    e.preventDefault();
+    await api('/api/admin/logout', { method: 'POST' });
+    location.reload();
+  };
+  acctBtn.onclick = (e) => {
+    e.preventDefault();
+    showAccount = !showAccount;
+    refresh();
+    if (showAccount) window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /* ---------- 小工具 ---------- */
+  function pwField(label, ph) {
+    const wrap = el('label', 'field');
+    wrap.appendChild(el('span', null, label));
+    const i = el('input');
+    i.type = 'password';
+    i.placeholder = ph || '';
+    i.autocomplete = 'new-password';
+    wrap.appendChild(i);
+    return { wrap, input: i };
+  }
+  function txtField(label, ph, max) {
+    const wrap = el('label', 'field');
+    wrap.appendChild(el('span', null, label));
+    const i = el('input');
+    i.type = 'text';
+    i.placeholder = ph || '';
+    if (max) i.maxLength = max;
+    wrap.appendChild(i);
+    return { wrap, input: i };
+  }
+
+  /* ---------- 登录 ---------- */
+  function renderLogin() {
+    app.innerHTML = '';
+    const c = el('section', 'card login-box');
+    c.appendChild(el('h1', 'title', '🔑 主人，请验明身份'));
+    c.appendChild(el('p', 'sub', '输入后台密码即可进入'));
+
+    const p = pwField('后台密码', '输入密码');
+    c.appendChild(p.wrap);
+
+    const btn = el('button', 'btn primary', '进入后台');
+    btn.style.width = '100%';
+    c.appendChild(btn);
+
+    const forget = el('div');
+    forget.style.cssText = 'text-align:center;margin-top:14px';
+    const a = el('a', null, '🤔 忘记密码？');
+    a.href = '#';
+    a.style.cssText = 'font-size:13px;color:var(--ink-soft)';
+    a.onclick = (e) => { e.preventDefault(); renderRecover(); };
+    forget.appendChild(a);
+    c.appendChild(forget);
+
+    app.appendChild(c);
+    p.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
+    btn.onclick = async () => {
+      btn.disabled = true;
+      try {
+        const r = await api('/api/admin/login', { method: 'POST', body: { password: p.input.value } });
+        if (r.needSetup) renderSetup();
+        else boot(true);
+      } catch (e) {
+        toast(e.message);
+        btn.disabled = false;
+      }
+    };
+    p.input.focus();
+  }
+
+  /* ---------- 忘记密码：答安全问题重置 ---------- */
+  async function renderRecover() {
+    app.innerHTML = '';
+    const c = el('section', 'card login-box');
+    c.appendChild(el('h1', 'title', '🤔 找回密码'));
+
+    let q = '';
+    try {
+      const r = await api('/api/admin/security-question');
+      q = r.question;
+    } catch {}
+
+    if (!q) {
+      c.appendChild(el('p', 'sub', '还没有设置安全问题。如果你是用初始密码登录的，先登录进去完成首次设置吧。'));
+      const back = el('button', 'btn ghost', '← 返回登录');
+      back.style.width = '100%';
+      back.onclick = renderLogin;
+      c.appendChild(back);
+      app.appendChild(c);
+      return;
+    }
+
+    c.appendChild(el('p', 'sub', '答对当初设置的安全问题，就能重设密码。'));
+    const qbox = el('div', 'codebox');
+    qbox.style.marginBottom = '16px';
+    qbox.appendChild(el('div', null, '你的安全问题'));
+    const qt = el('div', null, q);
+    qt.style.cssText = 'font-size:17px;font-weight:700;margin-top:6px;color:var(--ink)';
+    qbox.appendChild(qt);
+    c.appendChild(qbox);
+
+    const ans = txtField('你的答案', '答案不区分大小写和空格', 60);
+    const np = pwField('新密码', '至少 8 位');
+    const np2 = pwField('再输一次新密码');
+    c.appendChild(ans.wrap); c.appendChild(np.wrap); c.appendChild(np2.wrap);
+
+    const btn = el('button', 'btn primary', '✅ 重设密码');
+    btn.style.width = '100%';
+    c.appendChild(btn);
+
+    const back = el('a', null, '← 返回登录');
+    back.href = '#';
+    back.style.cssText = 'display:block;text-align:center;margin-top:14px;font-size:13px;color:var(--ink-soft)';
+    back.onclick = (e) => { e.preventDefault(); renderLogin(); };
+    c.appendChild(back);
+
+    app.appendChild(c);
+
+    btn.onclick = async () => {
+      if (!ans.input.value.trim()) return toast('请填写答案');
+      if (np.input.value.length < 8) return toast('新密码至少 8 位');
+      if (np.input.value !== np2.input.value) return toast('两次输入的密码不一样');
+      btn.disabled = true;
+      try {
+        await api('/api/admin/recover', {
+          method: 'POST',
+          body: { answer: ans.input.value, newPassword: np.input.value },
+        });
+        toast('密码已重置，去登录吧 🌿');
+        renderLogin();
+      } catch (e) { toast(e.message); btn.disabled = false; }
+    };
+    ans.input.focus();
+  }
+
+  /* ---------- 首次设置：改初始密码 + 设安全问题 ---------- */
+  function renderSetup() {
+    app.innerHTML = '';
+    acctBtn.style.display = 'none';
+    logoutBtn.style.display = '';
+
+    const c = el('section', 'card');
+    c.style.maxWidth = '520px';
+    c.style.margin = '4vh auto';
+    c.appendChild(el('h1', 'title', '🌱 先花一分钟设置好账号'));
+    c.appendChild(el('p', 'sub',
+      '现在用的还是初始密码，先换成你自己的。再设一个只有你知道的安全问题 —— 以后忘了密码，靠它就能找回来。'));
+
+    const np = pwField('新密码', '至少 8 位');
+    const np2 = pwField('再输一次新密码');
+    const q = txtField('安全问题', '例如：我养的第一只猫叫什么？', 60);
+    const a = txtField('答案', '答案不区分大小写和空格', 60);
+    [np, np2, q, a].forEach((f) => c.appendChild(f.wrap));
+
+    const tip = el('div', 'hint');
+    tip.textContent = '⚠️ 答案请选一个你绝对不会忘、别人又猜不到的。设置后无法查看，只能重置。';
+    tip.style.marginBottom = '14px';
+    c.appendChild(tip);
+
+    const btn = el('button', 'btn primary', '✅ 保存并进入后台');
+    btn.style.width = '100%';
+    c.appendChild(btn);
+
+    btn.onclick = async () => {
+      if (np.input.value.length < 8) return toast('密码至少 8 位');
+      if (np.input.value !== np2.input.value) return toast('两次输入的密码不一样');
+      if (!q.input.value.trim()) return toast('请填写安全问题');
+      if (!a.input.value.trim()) return toast('请填写答案');
+      btn.disabled = true;
+      try {
+        await api('/api/admin/setup', {
+          method: 'POST',
+          body: { newPassword: np.input.value, question: q.input.value, answer: a.input.value },
+        });
+        toast('设置完成，欢迎回来 🌿');
+        boot(true);
+      } catch (e) { toast(e.message); btn.disabled = false; }
+    };
+
+    app.appendChild(c);
+    np.input.focus();
+  }
+
+  /* ---------- 账号设置面板 ---------- */
+  function renderAccount() {
+    const c = el('section', 'card tint');
+    c.appendChild(el('h1', 'title', '⚙️ 账号设置'));
+
+    // 改密码
+    c.appendChild(el('p', 'sub', '改完密码后，其他设备上的登录状态会失效，需要重新登录。'));
+    const oldP = pwField('当前密码');
+    const newP = pwField('新密码', '至少 8 位');
+    const newP2 = pwField('再输一次新密码');
+    [oldP, newP, newP2].forEach((f) => c.appendChild(f.wrap));
+    const b1 = el('button', 'btn primary sm', '🔑 修改密码');
+    const r1 = el('div', 'btn-row');
+    r1.appendChild(b1);
+    c.appendChild(r1);
+    b1.onclick = async () => {
+      if (newP.input.value.length < 8) return toast('新密码至少 8 位');
+      if (newP.input.value !== newP2.input.value) return toast('两次输入的密码不一样');
+      b1.disabled = true;
+      try {
+        await api('/api/admin/password', {
+          method: 'POST',
+          body: { oldPassword: oldP.input.value, newPassword: newP.input.value },
+        });
+        toast('密码已更新 🌿');
+        [oldP, newP, newP2].forEach((f) => { f.input.value = ''; });
+      } catch (e) { toast(e.message); }
+      b1.disabled = false;
+    };
+
+    const hr = el('div');
+    hr.style.cssText = 'border-top:2px dashed var(--line);margin:20px 0';
+    c.appendChild(hr);
+
+    // 改安全问题
+    c.appendChild(el('h1', 'title', '🛡️ 修改安全问题'));
+    c.appendChild(el('p', 'sub', '忘记密码时靠它找回。改这个需要输入当前密码。'));
+    const pw2 = pwField('当前密码');
+    const q2 = txtField('新的安全问题', '例如：我小学同桌叫什么？', 60);
+    const a2 = txtField('新的答案', '答案不区分大小写和空格', 60);
+    [pw2, q2, a2].forEach((f) => c.appendChild(f.wrap));
+    const b2 = el('button', 'btn green sm', '🛡️ 保存新问题');
+    const r2 = el('div', 'btn-row');
+    r2.appendChild(b2);
+    c.appendChild(r2);
+    b2.onclick = async () => {
+      if (!q2.input.value.trim()) return toast('请填写安全问题');
+      if (!a2.input.value.trim()) return toast('请填写答案');
+      b2.disabled = true;
+      try {
+        await api('/api/admin/question', {
+          method: 'POST',
+          body: { password: pw2.input.value, question: q2.input.value, answer: a2.input.value },
+        });
+        toast('安全问题已更新 🌿');
+        [pw2, q2, a2].forEach((f) => { f.input.value = ''; });
+      } catch (e) { toast(e.message); }
+      b2.disabled = false;
+    };
+
+    return c;
+  }
+
+  /* ---------- 主人空间说明 ---------- */
+  function renderOwnerHero() {
+    const c = el('section', 'card tint');
+    c.appendChild(el('h1', 'title', '🌳 主人空间'));
+    const p = el('p', 'sub');
+    p.style.margin = '0';
+    p.textContent =
+      '这是你专属的地方，只有你能进来。所有人的信都在下面 —— 包括那些没勾选公开的私密信。' +
+      '你写的回信也只有写信人本人看得到，广场上不会出现。右上角「⚙️ 账号设置」可以改密码和安全问题。';
+    c.appendChild(p);
+    return c;
+  }
+
+  /* ---------- 统计 ---------- */
+  function renderStats() {
+    const row = el('div', 'stat-row');
+    [['total', '全部信件'], ['pending', '待审核'],
+     ['approved', '已公开'], ['private', '私密'], ['replied', '已回信']]
+      .forEach(([k, label]) => {
+        const s = el('div', 'stat');
+        s.appendChild(el('b', null, String(overview[k] || 0)));
+        s.appendChild(el('span', null, label));
+        row.appendChild(s);
+      });
+    app.appendChild(row);
+  }
+
+  function renderFilters() {
+    const box = el('div', 'filters');
+    [['all', '全部'], ['pending', '⏳ 待审核'], ['approved', '🌳 已公开'],
+     ['private', '🔒 私密'], ['rejected', '🙈 未通过']]
+      .forEach(([k, label]) => {
+        const b = el('button', 'btn sm ' + (filter === k ? 'green' : 'ghost'), label);
+        b.onclick = () => { filter = k; refresh(); };
+        box.appendChild(b);
+      });
+    app.appendChild(box);
+  }
+
+  /* ---------- 单封信 ---------- */
+  function item(l) {
+    const c = el('div', 'admin-item');
+
+    const meta = el('div', 'meta');
+    meta.appendChild(el('span', null, l.mood + ' ' + (l.nickname || '匿名的小家伙')));
+    meta.appendChild(el('span', null, '· ' + timeAgo(l.createdAt)));
+    meta.appendChild(el('span', null, '· 取件码 ' + l.pickupCode));
+    meta.appendChild(statusTag(l.status));
+    if (!l.ownerReply) meta.appendChild(el('span', 'tag pending', '未回信'));
+    c.appendChild(meta);
+
+    c.appendChild(el('div', 'body', l.content));
+
+    if (l.ownerReply) {
+      const b = el('div', 'owner-reply');
+      b.appendChild(el('div', 'h', '🔒 你的私密回信（仅写信人可见）'));
+      b.appendChild(el('div', 'c', l.ownerReply));
+      c.appendChild(b);
+    }
+
+    const ta = el('textarea');
+    ta.maxLength = 1000;
+    ta.placeholder = '写下回信……（只有写信人能看到）';
+    c.appendChild(ta);
+
+    if (l.status === 'approved') {
+      const lab = el('label');
+      lab.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--ink-soft)';
+      const cb = el('input');
+      cb.type = 'checkbox';
+      lab.appendChild(cb);
+      lab.appendChild(el('span', null, '同时作为公开回复展示在广场（署名「树洞主人」）'));
+      c.appendChild(lab);
+      ta._pub = cb;
+    }
+
+    const acts = el('div', 'actions');
+    const send = el('button', 'btn primary sm', l.ownerReply ? '✏️ 修改回信' : '💌 发送回信');
+    send.onclick = async () => {
+      const content = ta.value.trim();
+      if (!content) return toast('回信不能为空');
+      send.disabled = true;
+      try {
+        await api('/api/admin/letters/' + encodeURIComponent(l.id) + '/reply', {
+          method: 'POST',
+          body: { content, alsoPublic: ta._pub ? ta._pub.checked : false },
+        });
+        toast('回信已送达 🌿');
+        refresh();
+      } catch (e) { toast(e.message); send.disabled = false; }
+    };
+    acts.appendChild(send);
+
+    if (l.status === 'pending') {
+      const ok = el('button', 'btn green sm', '✅ 通过公开');
+      ok.onclick = () => setStatus(l, 'approved');
+      const no = el('button', 'btn ghost sm', '🙈 不通过');
+      no.onclick = () => setStatus(l, 'rejected');
+      acts.appendChild(ok); acts.appendChild(no);
+    }
+    if (l.status === 'approved') {
+      const off = el('button', 'btn ghost sm', '🔒 下架');
+      off.onclick = () => setStatus(l, 'private');
+      acts.appendChild(off);
+    }
+    if (l.status === 'rejected') {
+      const ok = el('button', 'btn green sm', '✅ 改为通过');
+      ok.onclick = () => setStatus(l, 'approved');
+      acts.appendChild(ok);
+    }
+
+    const del = el('button', 'btn ghost sm', '🗑️ 删除');
+    del.style.color = '#b4576e';
+    del.onclick = async () => {
+      if (!confirm('删除后无法恢复，确定删除这封信吗？')) return;
+      await api('/api/admin/letters/' + encodeURIComponent(l.id), { method: 'DELETE' });
+      toast('已删除');
+      refresh();
+    };
+    acts.appendChild(del);
+    c.appendChild(acts);
+    return c;
+  }
+
+  function statusTag(s) {
+    const map = {
+      private: ['private', '🔒 私密'], pending: ['pending', '⏳ 待审核'],
+      approved: ['ok', '🌳 已公开'], rejected: ['rejected', '🙈 未通过'],
+    };
+    const [cls, txt] = map[s] || map.private;
+    return el('span', 'tag ' + cls, txt);
+  }
+
+  async function setStatus(l, status) {
+    try {
+      await api('/api/admin/letters/' + encodeURIComponent(l.id) + '/status', {
+        method: 'POST', body: { status },
+      });
+      toast('已更新');
+      refresh();
+    } catch (e) { toast(e.message); }
+  }
+
+  async function refresh() {
+    const [ov, ls] = await Promise.all([
+      api('/api/admin/overview'),
+      api('/api/admin/letters?status=' + filter),
+    ]);
+    overview = ov;
+    letters = ls.letters;
+    app.innerHTML = '';
+    if (showAccount) app.appendChild(renderAccount());
+    app.appendChild(renderOwnerHero());
+    renderStats();
+    renderFilters();
+    if (!letters.length) {
+      const e = el('div', 'card empty');
+      e.appendChild(el('span', 'emo', '🌰'));
+      e.appendChild(el('div', null, '这个分类下暂时没有信件'));
+      app.appendChild(e);
+      return;
+    }
+    letters.forEach((l) => app.appendChild(item(l)));
+  }
+
+  async function boot(alreadyAuthed) {
+    const me = await api('/api/admin/me');
+    if (!me.ok) return renderLogin();
+    acctBtn.style.display = '';
+    logoutBtn.style.display = '';
+    if (me.needSetup && !alreadyAuthed) { /* 登录后由 login 分支处理 */ }
+    if (me.needSetup) return renderSetup();
+    try {
+      await refresh();
+    } catch (e) {
+      if (e.message.includes('401') || e.message.includes('登录')) return renderLogin();
+      toast(e.message);
+    }
+  }
+
+  boot(false);
+})();
+</script>
+</body>
+</html>

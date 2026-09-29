@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>树洞广场 · 树洞信箱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='48' font-size='48'>🌳</text></svg>" />
+</head>
+<body>
+<div class="wrap">
+
+  <section class="card tint">
+    <h1 class="title">🌳 树洞广场</h1>
+    <p class="sub" style="margin:0">
+      这些信件的作者自愿把它们公开出来，也都经过了树洞主人的审核。<br />
+      看到有共鸣的，就留一句温暖的话吧 💛
+    </p>
+  </section>
+
+  <div id="list"></div>
+  <div style="text-align:center;margin-top:8px">
+    <button class="btn ghost" id="more" style="display:none">🌿 加载更多</button>
+  </div>
+
+</div>
+
+<script src="/assets/common.js"></script>
+<script>
+(function () {
+  renderTop('square');
+  foot();
+
+  const list = document.getElementById('list');
+  const more = document.getElementById('more');
+  let offset = 0;
+  const SIZE = 20;
+  let total = 0;
+
+  function card(l) {
+    const c = el('div', 'letter');
+    c.style.cursor = 'pointer';
+    c.onclick = () => { location.href = '/letter.html?id=' + encodeURIComponent(l.id); };
+
+    const head = el('div', 'head');
+    head.appendChild(el('div', 'mood-badge', l.mood));
+    const who = el('div');
+    who.appendChild(el('div', 'who', l.nickname ? l.nickname : '匿名的小家伙'));
+    who.appendChild(el('div', 'time', timeAgo(l.createdAt)));
+    head.appendChild(who);
+    head.appendChild(el('span', 'tag', '💬 ' + l.replyCount));
+    c.appendChild(head);
+
+    const body = el('div', 'body');
+    body.textContent = l.content.length > 160 ? l.content.slice(0, 160) + '…' : l.content;
+    c.appendChild(body);
+
+    const go = el('div', 'btn-row');
+    const a = el('span', 'tag', '点开看看 →');
+    go.appendChild(a);
+    c.appendChild(go);
+    return c;
+  }
+
+  async function load() {
+    try {
+      const r = await api('/api/square?offset=' + offset + '&limit=' + SIZE);
+      total = r.total;
+      if (!r.letters.length && offset === 0) {
+        const e = el('div', 'card empty');
+        e.appendChild(el('span', 'emo', '🌱'));
+        e.appendChild(el('div', null, '广场上还没有信件'));
+        const a = el('a', 'btn primary', '✍️ 去写第一封');
+        a.href = '/index.html';
+        a.style.marginTop = '16px';
+        a.style.display = 'inline-block';
+        e.appendChild(a);
+        list.appendChild(e);
+        return;
+      }
+      r.letters.forEach((l) => list.appendChild(card(l)));
+      offset += r.letters.length;
+      more.style.display = offset < total ? '' : 'none';
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  more.onclick = load;
+  load();
+})();
+</script>
+</body>
+</html>
